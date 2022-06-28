@@ -39,7 +39,7 @@ ENV KUBECTL_VERSION=1.23.4
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.6
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
 ENV PROTOC_GEN_VALIDATE_VERSION=v0.6.7
-ENV PROTOC_VERSION=3.19.4
+ENV PROTOC_VERSION=21.2
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.8.0
@@ -66,11 +66,15 @@ RUN mkdir -p ${OUTDIR}/usr/local
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y software-properties-common
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 7EA0A9C3F273FCD8 && \
+	add-apt-repository "deb http://ftp.de.debian.org/debian sid main" &&\
+    apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     build-essential \
     ca-certificates \
     curl \
+    gh \
     gnupg2 \
     software-properties-common \
     unzip \
@@ -82,6 +86,7 @@ RUN set -eux; \
     case $(uname -m) in \
         x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
         aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
+        s390x) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-s390_64.zip;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
@@ -91,9 +96,9 @@ RUN set -eux; \
     chmod +x ${OUTDIR}/usr/bin/protoc
 
 # Install gh
-ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
-RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
-RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
+#ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
+#RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
+#RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
