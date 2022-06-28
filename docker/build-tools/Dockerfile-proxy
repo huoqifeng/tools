@@ -9,39 +9,36 @@ FROM ${GOLANG_IMAGE} as binary_tools_context
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial AS clang_context_amd64
-FROM ubuntu:bionic AS clang_context_arm64
-FROM ubuntu:bionic AS clang_context_s390x
-# hadolint ignore=DL3006
-FROM clang_context_${TARGETARCH} AS clang_context
-
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    xz-utils \
-    wget \
-    ca-certificates
-
-# 12.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=12.0.1
-ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
-ENV LLVM_DIRECTORY=/usr/lib/llvm
-
-RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) \
-               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
-               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
-        aarch64)  \
-               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
-               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
-        *) echo "unsupported architecture"; exit 1 ;; \
-    esac; \
-    \
-    wget -nv ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
-    tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
-    mkdir -p ${LLVM_DIRECTORY}; \
-    mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
+###   FROM ubuntu:xenial AS clang_context_amd64
+###   FROM ubuntu:bionic AS clang_context_arm64
+###   FROM ubuntu:bionic AS clang_context_s390x
+###   # hadolint ignore=DL3006
+###   FROM clang_context_${TARGETARCH} AS ###   
+###   # hadolint ignore=DL3008
+###   RUN apt-get update && apt-get install -y --no-install-recommends \
+###       xz-utils \
+###       wget \
+###       ca-###   
+###   # 12.0.1 is the version support ubuntu:xenial & aarch64
+###   ENV LLVM_VERSION=12.0.1
+###   ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
+###   ENV LLVM_DIRECTORY=/usr/lib/###   
+###   RUN set -eux; \
+###       \
+###       case $(uname -m) in \
+###           x86_64) \
+###                  export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
+###                  export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+###           aarch64)  \
+###                  export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
+###                  export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
+###           *) echo "unsupported architecture"; exit 1 ;; \
+###       esac; \
+###       \
+###       wget -nv ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
+###       tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
+###       mkdir -p ${LLVM_DIRECTORY}; \
+###       mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
 
 ###########
@@ -235,12 +232,12 @@ COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=gn_context /gn/gn /usr/local/bin/gn
 COPY --from=bazel_context /usr/local/bin /usr/local/bin
-COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
-COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
-COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
+### COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
+### COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
+### COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 
-RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
-RUN ldconfig
+### RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
+### RUN ldconfig
 
 COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
 RUN ./proxy-tsan-instrumented-libcxx.sh
